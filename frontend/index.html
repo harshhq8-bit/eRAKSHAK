@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simple IoT World - eRAKSHAK: IoT Smart Security System with NodeMCU ESP8266, Mobile Face Recognition, and Instant Cloud Alerts">
+  <title>Simple IoT World - eRAKSHAK Smart Security System</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23dc2626'><path d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z'/></svg>">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Vanilla CSS Stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Ambient Glowing Background Orbs -->
+  <div class="bg-glow-orb bg-glow-1"></div>
+  <div class="bg-glow-orb bg-glow-2"></div>
+
+  <div class="app-layout">
+
+    <!-- ====================================================================
+         1. Main Header
+         ==================================================================== -->
+    <header class="main-header">
+      <div class="header-inner">
+        <div class="brand-section">
+          <div class="brand-logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>
+              <span>Simple IoT World</span>
+              <span class="brand-badge">PRO v1.0</span>
+            </h1>
+            <p class="brand-sub">eRAKSHAK Smart Security System &bull; Justice League</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div id="cloudStatusBadge" class="status-pill online">
+            <span class="pulse-dot"></span>
+            <span>CLOUD ONLINE</span>
+          </div>
+
+          <div id="espStatusBadge" class="status-pill online">
+            <span class="pulse-dot"></span>
+            <span>ESP8266 ONLINE</span>
+          </div>
+
+          <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
+            <span id="themeIcon">
+              <!-- Sun / Moon populated by JS -->
+            </span>
+          </button>
+
+          <div class="user-profile-badge">
+            <div class="user-avatar-small">H</div>
+            <span>Harsh Thombre</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         2. High Priority Intrusion Alert Banner
+         ==================================================================== -->
+    <div id="intrusionAlertBanner" class="alert-banner">
+      <div class="alert-banner-inner">
+        <div class="alert-content">
+          <div class="alert-icon-wrap">🚨</div>
+          <div>
+            <div class="alert-title">SECURITY INTRUSION WARNING</div>
+            <div id="intrusionAlertDetails" class="alert-desc">Unauthorized person detected at entrance. Immediate verification required.</div>
+          </div>
+        </div>
+        <button id="dismissAlertBtn" class="alert-dismiss-btn">Dismiss Alert</button>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         3. Main Dashboard Workspace
+         ==================================================================== -->
+    <main class="main-wrapper">
+
+      <!-- Navigation Tabs -->
+      <nav class="tab-nav-bar" aria-label="Dashboard Tabs">
+        <div class="tabs-group">
+          <button class="tab-btn active" data-tab="overview">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <span>Overview</span>
+          </button>
+          <button class="tab-btn" data-tab="lcd">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+            <span>Smart LCD</span>
+          </button>
+          <button class="tab-btn" data-tab="led">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            <span>LED Control</span>
+          </button>
+          <button class="tab-btn" data-tab="device">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            <span>Device & Mobile</span>
+          </button>
+          <button class="tab-btn" data-tab="notifications">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span>Notifications</span>
+          </button>
+        </div>
+
+        <button id="syncTelemetryBtn" class="sync-action-btn" title="Sync Live Cloud Data">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span>Sync</span>
+        </button>
+      </nav>
+
+      <!-- ================================================================
+           TAB 1: OVERVIEW
+           ================================================================ -->
+      <section id="tab-overview" class="tab-panel active">
+        
+        <!-- Live Telemetry Metric Cards Grid -->
+        <div class="telemetry-grid">
+          
+          <!-- Card 1: ESP8266 Hardware -->
+          <article class="metric-card">
+            <div class="metric-top">
+              <span class="metric-label">ESP8266 Hub</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+              </div>
+            </div>
+            <div class="metric-value-row">
+              <span class="metric-main-value" style="color: var(--emerald-600);">ONLINE</span>
+            </div>
+            <span class="metric-sub-text">192.168.65.77 &bull; D4/D2</span>
+          </article>
+
+          <!-- Card 2: Mobile Camera Companion -->
+          <article class="metric-card">
+            <div class="metric-top">
+              <span class="metric-label">AI Camera</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+            </div>
+            <div class="metric-value-row">
+              <span class="metric-main-value" style="color: var(--blue-500);">READY</span>
+            </div>
+            <span class="metric-sub-text">Face Recognition v2.4</span>
+          </article>
+
+          <!-- Card 3: PIR Motion Sensor -->
+          <article class="metric-card">
+            <div class="metric-top">
+              <span class="metric-label">PIR Motion</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              </div>
+            </div>
+            <div class="metric-value-row">
+              <span id="overviewPirVal" class="metric-main-value" style="color: var(--emerald-600); font-size: 1.15rem;">CLEAR</span>
+            </div>
+            <span class="metric-sub-text">Perimeter Active</span>
+          </article>
+
+          <!-- Card 4: Ultrasonic Distance Gauge -->
+          <article class="metric-card">
+            <div class="metric-top">
+              <span class="metric-label">Distance</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><line x1="14.5" y1="5.5" x2="18.5" y2="9.5"/></svg>
+              </div>
+            </div>
+            <div class="metric-value-row">
+              <span id="overviewDistanceVal" class="metric-main-value">42</span>
+              <span class="metric-unit">cm</span>
+            </div>
+            <span class="metric-sub-text">HC-SR04 Range</span>
+          </article>
+
+          <!-- Card 5: Security LED -->
+          <article class="metric-card">
+            <div class="metric-top">
+              <span class="metric-label">Security LED</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              </div>
+            </div>
+            <div class="metric-value-row">
+              <span id="overviewLedVal" class="metric-main-value">OFF</span>
+            </div>
+            <span class="metric-sub-text">Pin D4 (GPIO 2)</span>
+          </article>
+
+          <!-- Card 6: 16x2 LCD Status -->
+          <article class="metric-card">
+            <div class="metric-top">
+              <span class="metric-label">Smart LCD</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+              </div>
+            </div>
+            <div class="metric-value-row">
+              <span id="overviewLcdRow1" class="metric-main-value" style="font-size: 0.95rem; font-family: var(--font-mono);">"SYSTEM READY"</span>
+            </div>
+            <span id="overviewLcdRow2" class="metric-sub-text" style="font-family: var(--font-mono);">"WAITING..."</span>
+          </article>
+
+        </div>
+
+        <!-- Charts & Telemetry Visualizations -->
+        <div class="charts-grid">
+          
+          <!-- Distance Trend Line -->
+          <div class="card-box">
+            <div class="card-header">
+              <h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Live Ultrasonic Ranging Distance History (cm)</span>
+              </h2>
+              <span class="brand-badge" style="background: rgba(16, 185, 129, 0.1); color: var(--emerald-600); border-color: rgba(16, 185, 129, 0.3);">LIVE STREAM</span>
+            </div>
+            <div class="chart-canvas-container">
+              <svg id="distanceSvgChart" width="100%" height="100%" preserveAspectRatio="none"></svg>
+            </div>
+          </div>
+
+          <!-- Quick System Diagnostic -->
+          <div class="card-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="card-header">
+                <h2>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <span>Access Ratio</span>
+                </h2>
+              </div>
+              <div style="padding: 10px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; font-weight: 700;">
+                  <span style="color: var(--emerald-600);">Authorized: 86%</span>
+                  <span style="color: var(--crimson-600);">Intrusions: 14%</span>
+                </div>
+                <div style="width: 100%; height: 10px; border-radius: 9999px; background: rgba(220, 38, 38, 0.3); overflow: hidden; display: flex;">
+                  <div style="width: 86%; height: 100%; background: var(--emerald-500);"></div>
+                  <div style="width: 14%; height: 100%; background: var(--crimson-500);"></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-subtle); padding: 14px; border-radius: 12px; font-size: 0.76rem; border: 1px solid var(--border-subtle); margin-top: 16px;">
+              <span style="font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Cloud Notification Engine:</span>
+              <span style="color: var(--text-muted);">Configured with Gmail SMTP &bull; Twilio Voice &bull; SMS Alerts Active</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Security Event Audit Log Table -->
+        <div class="card-box">
+          <div class="card-header">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span>Recent Security Events & Face Recognition Audit</span>
+            </h2>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Timezone: Asia/Kolkata (IST)</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="events-table">
+              <thead>
+                <tr>
+                  <th>Timestamp (IST)</th>
+                  <th>Event Type</th>
+                  <th>Identified Subject</th>
+                  <th>Recognition Status</th>
+                  <th>Distance</th>
+                  <th>Cloud Dispatches</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="eventsTableBody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================
+           TAB 2: SMART LCD CONTROLLER
+           ================================================================ -->
+      <section id="tab-lcd" class="tab-panel">
+        <div class="lcd-control-wrap">
+          
+          <div class="card-box" style="text-align: center;">
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">
+              16x2 Character LCD Display Hardware Controller
+            </h2>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 24px;">
+              Transmits character commands to NodeMCU ESP8266 via I2C PCF8574 backpack (Address 0x27).
+            </p>
+
+            <!-- Authentic 16x2 LCD Simulation Bezel -->
+            <div class="lcd-bezel">
+              <div class="lcd-screws">
+                <span class="screw"></span>
+                <span class="screw"></span>
+              </div>
+              
+              <div class="lcd-screen-glass">
+                <div id="lcdPreviewLine1" class="lcd-line">SYSTEM READY    </div>
+                <div id="lcdPreviewLine2" class="lcd-line">WAITING...      </div>
+              </div>
+
+              <div class="lcd-screws">
+                <span class="screw"></span>
+                <span class="screw"></span>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form id="lcdControlForm" class="lcd-form" style="margin-top: 24px;">
+              <div class="form-group">
+                <div class="form-header-row">
+                  <label for="lcdRow1Input">LCD Line 1</label>
+                  <span id="lcdCharCount1" class="char-counter">12/16</span>
+                </div>
+                <input id="lcdRow1Input" type="text" class="form-input" maxlength="16" value="SYSTEM READY" placeholder="Maximum 16 characters">
+              </div>
+
+              <div class="form-group">
+                <div class="form-header-row">
+                  <label for="lcdRow2Input">LCD Line 2</label>
+                  <span id="lcdCharCount2" class="char-counter">10/16</span>
+                </div>
+                <input id="lcdRow2Input" type="text" class="form-input" maxlength="16" value="WAITING..." placeholder="Maximum 16 characters">
+              </div>
+
+              <div id="lcdFeedbackMsg" class="feedback-msg"></div>
+
+              <button type="submit" class="primary-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>SAVE TO LCD</span>
+              </button>
+            </form>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================================================================
+           TAB 3: PHYSICAL SECURITY LED
+           ================================================================ -->
+      <section id="tab-led" class="tab-panel">
+        <div class="led-control-wrap">
+          
+          <div class="card-box">
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">
+              Physical Security LED Hardware Switcher
+            </h2>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 24px;">
+              Controls GPIO pin D4 on the NodeMCU ESP8266. Sends immediate cloud instructions to switch the on-site LED.
+            </p>
+
+            <div class="bulb-visual-container">
+              <div id="visualLedBulb" class="led-bulb-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+                  <path d="M9 18h6"/>
+                  <path d="M10 22h4"/>
+                </svg>
+              </div>
+
+              <div>
+                <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); display: block;">Hardware State</span>
+                <span id="ledStatusHeading" class="led-state-heading off">LED IS OFF</span>
+              </div>
+            </div>
+
+            <div class="led-buttons-grid">
+              <button id="ledTurnOnBtn" type="button" class="led-action-btn btn-on">
+                TURN LED ON
+              </button>
+              <button id="ledTurnOffBtn" type="button" class="led-action-btn btn-off active">
+                TURN LED OFF
+              </button>
+            </div>
+
+            <div style="margin-top: 24px; padding: 12px; background: var(--bg-subtle); border-radius: 12px; font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+              <span>Microcontroller Pin: <strong>NodeMCU D4 (GPIO 2)</strong></span>
+              <span>Communication: <strong>REST API /led</strong></span>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================================================================
+           TAB 4: DEVICE & MOBILE HUB
+           ================================================================ -->
+      <section id="tab-device" class="tab-panel">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          
+          <!-- NodeMCU ESP8266 Specs -->
+          <div class="card-box">
+            <div class="card-header">
+              <h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                <span>Section A: ESP8266 Device Configuration</span>
+              </h2>
+              <span class="status-pill online" style="padding: 4px 8px; font-size: 0.65rem;">CONNECTED</span>
+            </div>
+
+            <table class="specs-table">
+              <tr>
+                <td>Device Name</td>
+                <td>eRAKSHAK Main Gate</td>
+              </tr>
+              <tr>
+                <td>Device UID</td>
+                <td>ESP8266-CP2102-01</td>
+              </tr>
+              <tr>
+                <td>Wi-Fi SSID</td>
+                <td>ESP8266</td>
+              </tr>
+              <tr>
+                <td>Wi-Fi Password</td>
+                <td>12345678</td>
+              </tr>
+              <tr>
+                <td>Local IP</td>
+                <td>192.168.65.77</td>
+              </tr>
+              <tr>
+                <td>API Key</td>
+                <td>erakshak_default_key</td>
+              </tr>
+              <tr>
+                <td>Cloud Target</td>
+                <td>http://localhost:5000</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Mobile AI Companion Pairing -->
+          <div class="card-box">
+            <div class="card-header">
+              <h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                <span>Section B: Android Mobile AI Companion</span>
+              </h2>
+            </div>
+
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 16px;">
+              Pair any Android smartphone to act as an edge AI Face Recognition security camera.
+            </p>
+
+            <div class="pairing-box">
+              <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">
+                6-Digit Security Pairing Code
+              </span>
+              <div id="mobilePairingCode" class="pairing-code-display">849201</div>
+              <button id="genPairingCodeBtn" class="secondary-btn" style="padding: 8px 16px;">
+                GENERATE NEW CODE
+              </button>
+            </div>
+
+            <div style="margin-top: 16px; text-align: center;">
+              <a href="./mobile.html" target="_blank" class="primary-btn" style="width: 100%; text-decoration: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>OPEN MOBILE CAMERA COMPANION</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================================================================
+           TAB 5: NOTIFICATIONS & DISPATCH TESTING
+           ================================================================ -->
+      <section id="tab-notifications" class="tab-panel">
+        <div style="max-width: 760px; margin: 0 auto;">
+          
+          <div class="card-box">
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">
+              Multi-Channel Cloud Emergency Alert Dispatch
+            </h2>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 24px;">
+              Configure automatic SMS, Gmail, and Voice dispatch when unauthorized persons are detected.
+            </p>
+
+            <div id="notifFeedbackMsg" class="feedback-msg"></div>
+
+            <form id="notifSettingsForm" style="display: flex; flex-direction: column; gap: 18px;">
+              
+              <!-- Channels Toggles -->
+              <div class="channel-toggles-grid">
+                
+                <label class="toggle-card active">
+                  <div class="toggle-header">
+                    <span>Twilio SMS</span>
+                    <input id="smsToggle" type="checkbox" checked style="accent-color: var(--crimson-600); width: 18px; height: 18px;">
+                  </div>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Instant SMS security alert</span>
+                </label>
+
+                <label class="toggle-card active">
+                  <div class="toggle-header">
+                    <span>Gmail Alert</span>
+                    <input id="emailToggle" type="checkbox" checked style="accent-color: var(--crimson-600); width: 18px; height: 18px;">
+                  </div>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">HTML telemetry email</span>
+                </label>
+
+                <label class="toggle-card">
+                  <div class="toggle-header">
+                    <span>Twilio Voice</span>
+                    <input id="callToggle" type="checkbox" style="accent-color: var(--crimson-600); width: 18px; height: 18px;">
+                  </div>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Automated call trigger</span>
+                </label>
+
+              </div>
+
+              <!-- Inputs -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-group">
+                  <label for="notifPhoneInput" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                    Recipient Phone Number (E.164)
+                  </label>
+                  <input id="notifPhoneInput" type="text" class="form-input" value="+919876543210" placeholder="+919876543210">
+                </div>
+
+                <div class="form-group">
+                  <label for="notifEmailInput" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                    Recipient Email Address
+                  </label>
+                  <input id="notifEmailInput" type="email" class="form-input" value="harshthombre4@gmail.com" placeholder="harshthombre4@gmail.com">
+                </div>
+              </div>
+
+              <!-- Cooldown -->
+              <div class="form-group">
+                <div class="form-header-row">
+                  <label for="cooldownRange">Anti-Spam Cooldown Timer</label>
+                  <span id="cooldownValDisplay" style="color: var(--crimson-600); font-weight: bold;">60s</span>
+                </div>
+                <input id="cooldownRange" type="range" min="10" max="300" step="5" value="60" style="accent-color: var(--crimson-600); width: 100%; cursor: pointer;">
+                <span style="font-size: 0.72rem; color: var(--text-muted);">
+                  Prevents repetitive notifications during prolonged continuous perimeter activity.
+                </span>
+              </div>
+
+              <button type="submit" class="primary-btn">
+                SAVE NOTIFICATION SETTINGS
+              </button>
+            </form>
+
+            <!-- Test Buttons -->
+            <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
+              <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); display: block; margin-bottom: 12px;">
+                Real-Time Cloud Dispatch Verification
+              </span>
+              <div class="test-buttons-grid">
+                <button id="testSmsBtn" type="button" class="secondary-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                  <span>TEST SMS</span>
+                </button>
+                <button id="testEmailBtn" type="button" class="secondary-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  <span>TEST EMAIL</span>
+                </button>
+                <button id="testCallBtn" type="button" class="secondary-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <span>TEST CALL</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ====================================================================
+         4. Footer
+         ==================================================================== -->
+    <footer class="main-footer">
+      <p class="footer-credit-title">Developed by Justice League</p>
+      <p class="footer-credit-dept">Dept of ETC, SBJAIN</p>
+    </footer>
+
+  </div>
+
+  <!-- Vanilla Application Logic -->
+  <script src="./app.js"></script>
+</body>
+</html>

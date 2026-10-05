@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mobile AI Camera Companion - eRAKSHAK</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23dc2626'><circle cx='12' cy='12' r='10'/></svg>">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #090d16;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .mobile-header {
+      padding: 14px 20px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(244, 63, 94, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      text-transform: uppercase;
+    }
+
+    .camera-viewport-card {
+      position: relative;
+      margin: 16px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 4 / 3;
+      border: 2px solid rgba(220, 38, 38, 0.4);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .scan-target-box {
+      position: absolute;
+      width: 55%;
+      height: 65%;
+      border: 3px dashed #10b981;
+      border-radius: 16px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    .scan-target-box.unauthorized {
+      border-color: #ef4444;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+    }
+
+    .scan-reticle-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #10b981, transparent);
+      animation: scanAnim 2.5s infinite linear;
+    }
+    @keyframes scanAnim {
+      0% { top: 0%; opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { top: 100%; opacity: 0.2; }
+    }
+
+    .detection-result-tag {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+
+    .camera-tools-bar {
+      padding: 0 16px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .tool-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .tool-btn:hover {
+      background: #334155;
+    }
+
+    .action-panel {
+      padding: 16px;
+      margin: 0 16px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sim-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-auth {
+      padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      font-weight: 800;
+      font-size: 0.76rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-unauth {
+      padding: 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      font-weight: 800;
+      font-size: 0.76rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+    }
+
+    .pairing-card {
+      margin: 0 16px 24px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .mobile-footer {
+      margin-top: auto;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="mobile-header">
+    <div class="brand-title">
+      <span>🛡️ eRAKSHAK AI</span>
+    </div>
+    <div class="pill-status">
+      <span>CONNECTED</span>
+    </div>
+  </header>
+
+  <!-- Video Viewport -->
+  <div class="camera-viewport-card">
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    
+    <div id="scanTargetBox" class="scan-target-box">
+      <div class="scan-reticle-line"></div>
+    </div>
+
+    <div class="detection-result-tag">
+      <div>
+        <span style="color: #94a3b8; font-size: 0.65rem; display: block;">SUBJECT:</span>
+        <strong id="subjectNameText">Harsh Thombre</strong>
+      </div>
+      <div>
+        <span id="subjectStatusText" style="color: #10b981; font-weight: 800; font-size: 0.85rem;">AUTHORIZED</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="camera-tools-bar">
+    <button id="toggleCameraBtn" class="tool-btn">
+      📷 START / FLIP CAMERA
+    </button>
+    <a href="./index.html" class="tool-btn" style="text-decoration: none;">
+      🖥️ DASHBOARD
+    </a>
+  </div>
+
+  <!-- Real Testing Actions -->
+  <div class="action-panel">
+    <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8;">
+      Simulate Live Face Recognition & Dispatch Alerts:
+    </div>
+    
+    <div class="sim-btn-group">
+      <button id="simAuthBtn" class="btn-auth">
+        ✓ RECOGNIZE AUTHORIZED (Harsh)
+      </button>
+      <button id="simUnauthBtn" class="btn-unauth">
+        🚨 TRIGGER UNAUTHORIZED ALERT
+      </button>
+    </div>
+
+    <div id="simFeedback" style="font-size: 0.72rem; color: #10b981; min-height: 18px; text-align: center;"></div>
+  </div>
+
+  <!-- Hub Pairing Status -->
+  <div class="pairing-card">
+    <div>
+      <span style="color: #94a3b8; font-size: 0.7rem; display: block;">DEVICE HUB:</span>
+      <strong>eRAKSHAK Main Gate (ETC)</strong>
+    </div>
+    <div style="font-family: monospace; font-size: 0.9rem; font-weight: bold; color: #f43f5e;">
+      CODE: 849201
+    </div>
+  </div>
+
+  <footer class="mobile-footer">
+    <p>Developed by Justice League</p>
+    <p>Dept of ETC, SBJAIN</p>
+  </footer>
+
+  <script src="./mobile.js"></script>
+</body>
+</html>
